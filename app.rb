@@ -27,6 +27,8 @@ class Stringer < Sinatra::Base
     register Sinatra::Contrib
 
     ActiveRecord::Base.include_root_in_json = false
+
+    @base_url = ENV["BASE_URL"] || ""
   end
 
   helpers do
@@ -53,21 +55,22 @@ class Stringer < Sinatra::Base
     I18n.locale = ENV["LOCALE"].blank? ? :en : ENV["LOCALE"].to_sym
 
     if !is_authenticated? && needs_authentication?(request.path)
-      redirect '/login'
+      redirect '#{base_url}/login'
     end
   end
 
   get "/" do
     if UserRepository.setup_complete?
-      redirect to("/news")
+      redirect to("#{base_url}/news")
     else
-      redirect to("/setup/password")
+      redirect to("#{base_url}/setup/password")
     end
   end
+
+  attr_reader :base_url
 end
 
 require_relative "app/controllers/stories_controller"
 require_relative "app/controllers/first_run_controller"
 require_relative "app/controllers/sessions_controller"
 require_relative "app/controllers/feeds_controller"
-
