@@ -21,6 +21,7 @@ gem "coveralls", require: false
 group :production do
   gem "unicorn"
   gem "pg"
+  gem "activerecord-mysql2-adapter"
 end
 
 group :development do
