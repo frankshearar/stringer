@@ -71,23 +71,87 @@ describe "StoriesController" do
     end
   end
 
-  describe "PUT /stories/:id" do
-    before { StoryRepository.stub(:fetch).and_return(story_one) }
+  describe "GET /starred" do
+    let(:starred_one) { StoryFactory.build(is_starred: true) }
+    let(:starred_two) { StoryFactory.build(is_starred: true) }
+    let(:stories) { [starred_one, starred_two].paginate }
+    before { StoryRepository.stub(:starred).and_return(stories) }
 
-    it "marks a story as read" do
-      StoryRepository.should_receive(:save).once
+    it "displays the list of starred stories with pagination" do
+      get "/starred"
 
-      put "/stories/#{story_one.id}", {is_read: true}.to_json
-
-      story_one.is_read.should be_true
+      page = last_response.body
+      page.should have_tag("#stories")
+      page.should have_tag("div#pagination")
     end
   end
 
-  describe "/mark_all_as_read" do
+  describe "PUT /stories/:id" do
+    before { StoryRepository.stub(:fetch).and_return(story_one) }
+    context "is_read parameter" do
+      context "when it is not malformed" do
+        it "marks a story as read" do
+          StoryRepository.should_receive(:save).once
+
+          put "/stories/#{story_one.id}", {is_read: true}.to_json
+
+          story_one.is_read.should eq true
+        end
+      end
+
+      context "when it is malformed" do
+        it "marks a story as read" do
+          StoryRepository.should_receive(:save).once
+
+          put "/stories/#{story_one.id}", {is_read: "malformed"}.to_json
+
+          story_one.is_read.should eq true
+        end
+      end
+    end
+
+    context "keep_unread parameter" do
+      context "when it is not malformed" do
+        it "marks a story as permanently unread" do
+          put "/stories/#{story_one.id}", {keep_unread: false}.to_json
+
+          story_one.keep_unread.should eq false
+        end
+      end
+
+      context "when it is malformed" do
+        it "marks a story as permanently unread" do
+          put "/stories/#{story_one.id}", {keep_unread: "malformed"}.to_json
+
+          story_one.keep_unread.should eq true
+        end
+      end
+    end
+
+    context "is_starred parameter" do
+      context "when it is not malformed" do
+        it "marks a story as permanently starred" do
+          put "/stories/#{story_one.id}", {is_starred: true}.to_json
+
+          story_one.is_starred.should eq true
+        end
+      end
+
+      context "when it is malformed" do
+        it "marks a story as permanently starred" do
+          put "/stories/#{story_one.id}", {is_starred: "malformed"}.to_json
+
+          story_one.is_starred.should eq true
+        end
+      end
+    end
+  end
+
+  describe "POST /stories/mark_all_as_read" do
     it "marks all unread stories as read and reload the page" do
       MarkAllAsRead.any_instance.should_receive(:mark_as_read).once
 
-      post "/mark_all_as_read", story_ids: ["1", "2", "3"]
+      post "/stories/mark_all_as_read", story_ids: ["1", "2", "3"]
 
       last_response.status.should be 302
       URI::parse(last_response.location).path.should eq "/news"

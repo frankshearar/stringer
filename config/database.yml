@@ -13,3 +13,4 @@ production:
   database: <%= ENV['STRINGER_DATABASE'] || "stringer" %>
   username: <%= ENV['STRINGER_DATABASE_USERNAME'] %>
   password: <%= ENV['STRINGER_DATABASE_PASSWORD'] %>
+

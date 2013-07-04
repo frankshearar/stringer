@@ -7,7 +7,7 @@
 
 Stringer has no external dependencies, no social recommendations/sharing, and no fancy machine learning algorithms. 
 
-But it does have keyboard shortcuts (hit `?` from within the app) and was made with love!
+But it does have keyboard shortcuts and was made with love!
 
 When `BIG_FREE_READER` shuts down, your instance of Stringer will still be kicking.
 
@@ -21,7 +21,7 @@ The app is currently under active development, please try it out and report any 
 
 Stringer is a Ruby app based on Sinatra, ActiveRecord, PostgreSQL, Backbone.js and DelayedJob.
 
-Instructions are provided for deploying to Heroku (runs fine on the free plan) but Stringer can be deployed anywhere that supports Ruby.
+Instructions are provided for deploying to Heroku (runs fine on the free plan) but Stringer can be deployed anywhere that supports Ruby (setup instructions for a Linux-based VPS are provided [here](/VPS.md)).
 
 ```sh
 git clone git://github.com/swanson/stringer.git
@@ -36,11 +36,15 @@ heroku restart
 
 heroku addons:add scheduler
 heroku addons:open scheduler
-
-Add an hourly task that runs `rake fetch_feeds`
 ```
 
+Add an hourly task that runs `rake fetch_feeds`
+
 Load the app and follow the instructions to import your feeds and start using the app.
+
+---
+
+In the event that you need to change your password, run `heroku run rake change_password`  from the app folder.
 
 ## Updating the app
 
@@ -54,6 +58,14 @@ heroku restart
 ```
 
 # Niceties
+
+Keyboard Shortcuts
+
+You can access the keyboard shortcuts when using the app by hitting `?`.
+
+![](screenshots/keyboard_shortcuts.png)
+
+---
 
 You can run Stringer at `http://reader.yourdomain.com` using a CNAME.
 
@@ -72,23 +84,45 @@ Wait a few minutes for changes to propagate.
 
 ---
 
+ReederApp Support (experimental)
+
+Stringer implements a clone of [Fever's API](http://www.feedafever.com/api) so it can be used with any mobile client that supports Fever.
+
+![image](https://f.cloud.github.com/assets/56947/546236/68456536-c288-11e2-834b-9043dc75a087.png)
+
+Use the following settings:
+
+```
+Server: {path-to-stringer}/fever (e.g. http://reader.example.com/fever)
+
+Email: stringer (case-sensitive)
+Password: {your-stringer-password}
+```
+
+Currently, only reading is supported and this is kind of a hack so please report any issues you run into. If you have previously setup Stringer, you will need to migrate your database and run `rake change_password` for the API key to be setup properly.
+
+---
+
 Stringer has been translated to [several other languages](config/locales). Your language can be set with the `LOCALE` environment variable.
 
 To set your locale on Heroku, run `heroku config:set LOCALE=en`.
 
-If you would like to translate Stringer to your preferred language, please open a pull request.
+If you would like to translate Stringer to your preferred language, please use [LocaleApp](http://www.localeapp.com/projects/4637).
 
 # Development
 
-Run the tests with `rspec`.
+Run the Ruby tests with `rspec`. 
+
+Run the Javascript tests with `rake test_js` and then open a browser to `http://localhost:4567/test`.
 
 In development, stringer uses `sqlite` - there are issues with locking if you run background jobs at the same time as queries are being made via the web app. If you run into these, consider using `pg` locally.
 
 ## Getting Started
 
-To get started using Stringer locally simply run the following:
+To get started using Stringer for development simply run the following:
 
 ```sh
+bundle install
 rake db:migrate
 foreman start
 ```
